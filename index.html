@@ -1,0 +1,777 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Neural Deep Work</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky tab bar under a countdown header; Today list, Week grid, Plan timeline, Topic tracker. Ink-on-graph-paper look, one cobalt accent, four course-family hues. */
+:root {
+  --bg: #F2F4F6; --surface: #FFFFFF; --ink: #15202B; --muted: #5B6773; --line: #D6DCE2; --grid: rgba(21,32,43,.045);
+  --accent: #1D4ED8; --accent-ink: #FFFFFF; --accent-bg: #E3EBFD; --today: #EEF3FE;
+  --phy: #2457C5; --phy-bg: #E1EAFB;
+  --mth: #A85206; --mth-bg: #FBEBD6;
+  --chm: #0C7468; --chm-bg: #D7F0EB;
+  --gen: #A3365A; --gen-bg: #F8E1E9;
+  --lec-bg: #E6E9ED; --lec-ink: #46515C;
+  --font-display: 'Bricolage Grotesque', 'Trebuchet MS', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E141A; --surface: #171F28; --ink: #E5EAF0; --muted: #94A1AE; --line: #2A3540; --grid: rgba(229,234,240,.045);
+    --accent: #7AA2FF; --accent-ink: #0B1220; --accent-bg: #1B2A4A; --today: #15213A;
+    --phy: #8DB0FF; --phy-bg: #1B2B4C;
+    --mth: #F0A45B; --mth-bg: #3A2915;
+    --chm: #5CD0BF; --chm-bg: #10332E;
+    --gen: #F08DAB; --gen-bg: #3F1C2B;
+    --lec-bg: #212B35; --lec-ink: #9AA7B3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E141A; --surface: #171F28; --ink: #E5EAF0; --muted: #94A1AE; --line: #2A3540; --grid: rgba(229,234,240,.045);
+  --accent: #7AA2FF; --accent-ink: #0B1220; --accent-bg: #1B2A4A; --today: #15213A;
+  --phy: #8DB0FF; --phy-bg: #1B2B4C;
+  --mth: #F0A45B; --mth-bg: #3A2915;
+  --chm: #5CD0BF; --chm-bg: #10332E;
+  --gen: #F08DAB; --gen-bg: #3F1C2B;
+  --lec-bg: #212B35; --lec-ink: #9AA7B3;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink); font: 15px/1.55 var(--font-body);
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.phy { --f: var(--phy); --f-bg: var(--phy-bg); }
+.mth { --f: var(--mth); --f-bg: var(--mth-bg); }
+.chm { --f: var(--chm); --f-bg: var(--chm-bg); }
+.gen { --f: var(--gen); --f-bg: var(--gen-bg); }
+
+.hero { padding-block: 26px 16px; }
+.eyebrow { font: 500 11.5px/1.4 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
+h1 { font: 800 clamp(30px, 6vw, 46px)/1.05 var(--font-display); margin: 6px 0 4px; text-wrap: balance; letter-spacing: -.01em; }
+.sub { margin: 0 0 18px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+.tile-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.label { font: 600 11px/1.3 var(--font-body); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+.tile input[type="date"] { font: 500 13px var(--font-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; max-width: 100%; }
+.big { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 8px 0 2px; }
+.big b { font: 600 44px/1 var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.big span { color: var(--muted); font-size: 14px; }
+.tile .when { font: 400 13px var(--font-mono); color: var(--muted); margin: 0 0 12px; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .25s; }
+.cov { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+
+.modebar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+.tablist { display: flex; gap: 2px; overflow-x: auto; }
+.tablist button { font: 600 14px var(--font-body); color: var(--muted); background: none; border: 0; border-bottom: 3px solid transparent; padding: 12px 14px 9px; cursor: pointer; white-space: nowrap; }
+.tablist button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+main { padding-block: 20px 48px; display: grid; gap: 20px; }
+h2 { font: 600 21px/1.2 var(--font-display); margin: 0; text-wrap: balance; }
+h3 { font: 600 13px/1.3 var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.head p { margin: 2px 0 0; color: var(--muted); }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+.chip { display: inline-block; font: 600 12px/1.5 var(--font-mono); padding: 1px 8px; border-radius: 999px; background: var(--f-bg); color: var(--f); white-space: nowrap; }
+.time { font: 500 13px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+
+.blk { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
+.blk label { display: grid; grid-template-columns: 22px 1fr; gap: 12px; padding: 12px 14px; align-items: start; cursor: pointer; }
+.blk input[type="checkbox"] { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); }
+.blk .row1 { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.blk .task { display: block; margin-top: 2px; }
+.blk.done .task { color: var(--muted); text-decoration: line-through; }
+.blk.next { border-color: var(--accent); background: var(--today); }
+.tag-now { font: 600 11px var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.lec { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; padding: 8px 12px; margin-bottom: 6px; border-radius: 8px; background: var(--lec-bg); color: var(--lec-ink); font-size: 14px; }
+.lec .time { color: var(--lec-ink); }
+.empty { color: var(--muted); margin: 0; }
+.summary-line { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 14px; margin-bottom: 6px; }
+.summary-line b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn { font: 500 13px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+.scroller { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.wk { --hh: 46px; display: grid; grid-template-columns: 46px repeat(7, minmax(104px, 1fr)); min-width: 820px; }
+.hd { padding: 8px 6px; text-align: center; font: 600 12px var(--font-body); border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); }
+.hd.today { color: var(--accent); background: var(--today); box-shadow: inset 0 -3px 0 var(--accent); }
+.hd small { display: block; font: 400 11px var(--font-mono); color: var(--muted); }
+.gut, .col { position: relative; height: calc(15 * var(--hh)); }
+.gut span { position: absolute; right: 6px; font: 400 10.5px var(--font-mono); color: var(--muted); }
+.col { border-left: 1px solid var(--line); background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--hh) - 1px), var(--line) calc(var(--hh) - 1px), var(--line) var(--hh)); }
+.col.today { background-color: var(--today); }
+.gb { position: absolute; left: 3px; right: 3px; border-radius: 6px; padding: 3px 6px; font: 400 11.5px/1.25 var(--font-body); overflow: hidden; text-align: left; margin: 0; }
+button.gb { border: 1px solid var(--f); background: var(--f-bg); color: var(--f); cursor: pointer; font-family: var(--font-body); }
+button.gb b { font: 600 11.5px var(--font-mono); display: block; }
+button.gb.done { opacity: .5; }
+button.gb.done b::before { content: "\2713  "; }
+.gb.lecture { background: var(--lec-bg); color: var(--lec-ink); }
+.gb.lecture b { font: 600 11.5px var(--font-mono); display: block; }
+.gb.blocked { background: repeating-linear-gradient(135deg, var(--lec-bg) 0, var(--lec-bg) 5px, var(--line) 5px, var(--line) 6px); color: var(--lec-ink); }
+.nowline { position: absolute; left: 0; right: 0; height: 2px; background: var(--accent); z-index: 2; pointer-events: none; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.legend li { display: grid; gap: 2px; }
+.legend .meta { font: 400 12.5px var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.toprow { display: flex; justify-content: space-between; align-items: center; gap: 8px 16px; flex-wrap: wrap; }
+.themebar { display: flex; align-items: center; gap: 10px; }
+.switch { display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; color: var(--ink); font: 500 13px var(--font-body); cursor: pointer; padding: 6px 0; }
+.switch .track { width: 42px; height: 24px; border-radius: 999px; background: var(--line); border: 1px solid var(--muted); position: relative; flex: none; transition: background .2s; }
+.switch .thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--ink); transition: transform .2s, background .2s; }
+.switch[aria-checked="true"] .track { background: var(--accent); border-color: var(--accent); }
+.switch[aria-checked="true"] .thumb { transform: translateX(18px); background: var(--accent-ink); }
+@media (prefers-reduced-motion: reduce) { .switch .track, .switch .thumb { transition: none; } }
+.mline { margin: 0; }
+.mline + .mline { margin-top: 8px; }
+.mline b, .mt b { font-family: var(--font-mono); font-weight: 600; color: var(--f, var(--mth)); }
+.mt { margin: 4px 0 0; font-size: 14px; }
+.wkt { font: 500 10.5px var(--font-mono); color: var(--muted); flex: none; margin-top: 4px; letter-spacing: .03em; }
+
+.wkrow { display: grid; grid-template-columns: 52px 112px 1fr 110px; gap: 4px 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); align-items: start; }
+.wkrow:last-child { border-bottom: 0; }
+.wkrow .n { font: 600 14px var(--font-mono); }
+.wkrow .d { font: 400 13px var(--font-mono); color: var(--muted); }
+.wkrow p { margin: 4px 0 0; }
+.wkrow .h { font: 400 12.5px var(--font-mono); color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.wkrow.cur { background: var(--today); }
+.wkrow.past { opacity: .6; }
+.ph { display: inline-block; font: 600 11px/1.6 var(--font-body); letter-spacing: .07em; text-transform: uppercase; padding: 0 8px; border-radius: 4px; background: var(--lec-bg); color: var(--ink); }
+.wkrow.push .ph { background: var(--mth-bg); color: var(--mth); }
+.wkrow.rev .ph { background: var(--accent-bg); color: var(--accent); }
+.wkrow.exam .ph { background: var(--accent); color: var(--accent-ink); }
+.here { font: 600 11px var(--font-body); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-left: 8px; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.two ol, .two ul { display: grid; gap: 8px; }
+.two li { display: grid; grid-template-columns: 26px 1fr; gap: 8px; }
+.two li b { font: 600 13px var(--font-mono); color: var(--accent); }
+.two ul li { display: block; }
+
+details.card { padding: 0; }
+summary { list-style: none; cursor: pointer; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; align-items: center; }
+summary::-webkit-details-marker { display: none; }
+summary .ttl { min-width: 0; font-weight: 500; }
+summary .cnt { font: 500 13px var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+summary .bar { grid-column: 1 / -1; }
+summary .bar i { background: var(--f); }
+.topics { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 2px 20px; padding: 6px 16px 14px; border-top: 1px solid var(--line); }
+.topics li { display: flex; gap: 8px; align-items: flex-start; padding: 5px 0; min-width: 0; }
+.topics label { display: flex; gap: 8px; align-items: flex-start; flex: 1; min-width: 0; cursor: pointer; }
+.topics input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--f); flex: none; }
+.topics .done span { color: var(--muted); text-decoration: line-through; }
+.tagbtn { font: 500 10.5px var(--font-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; cursor: pointer; flex: none; margin-top: 2px; }
+footer { padding-block: 0 8px; }
+
+@media (max-width: 640px) {
+  .wkrow { grid-template-columns: 48px 1fr; }
+  .wkrow .b { grid-column: 1 / -1; }
+  .wkrow .h { grid-column: 1 / -1; text-align: left; }
+  .big b { font-size: 38px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+
+<header class="wrap hero">
+  <div class="toprow">
+    <p class="eyebrow">Electrical &amp; Electronics Engineering &middot; 100 Level &middot; First semester</p>
+    <div class="themebar">
+      <button class="switch" id="themeSwitch" type="button" role="switch" aria-checked="false" aria-label="Dark mode">
+        <span class="track"><span class="thumb"></span></span><span id="themeLabel">Dark mode</span>
+      </button>
+      <button class="btn" id="themeReset" type="button" hidden>Match device</button>
+    </div>
+  </div>
+  <h1>Neural Deep Work</h1>
+  <p class="sub" id="todayLine"></p>
+  <div class="tiles" id="tiles"></div>
+  <div class="modebar" id="modeBar"></div>
+</header>
+<nav class="tabs" aria-label="Planner sections">
+  <div class="wrap">
+    <div class="tablist" role="tablist">
+      <button role="tab" data-tab="today" aria-selected="true">Today</button>
+      <button role="tab" data-tab="week" aria-selected="false">Week</button>
+      <button role="tab" data-tab="plan" aria-selected="false">Plan to finals</button>
+      <button role="tab" data-tab="topics" aria-selected="false">Topics</button>
+    </div>
+  </div>
+</nav>
+<main class="wrap" id="view" role="tabpanel"></main>
+<footer class="wrap"><p class="note"><span id="saveStatus" aria-live="polite">Saving automatically in this browser.</span> Ticks, topic tags, exam dates and your open tab are kept on this device. Exam dates are estimates: change them to the dates your department announces.</p></footer>
+
+<script>
+(function () {
+  'use strict';
+  var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  var FAM = { phy: 'Physics', mth: 'Mathematics', chm: 'Chemistry', gen: 'General and mixed' };
+  var START = new Date(2026, 9, 12); // Monday 12 Oct 2026, first planner week
+  var DAY_MS = 864e5;
+
+  /* Lectures from the 100L EEE timetable */
+  var LECTURES = [
+    { d: 0, s: 9, e: 11, c: 'GST 111', n: 'Communication in English', w: 'Online', f: 'gen' },
+    { d: 0, s: 13, e: 15, c: 'PHY 101', n: 'General Physics I', w: 'Rm 011 Congo', f: 'phy' },
+    { d: 1, s: 13, e: 15, c: 'PHY 107', n: 'Practical Physics I', w: 'Phy Lab, Ubangi', f: 'phy' },
+    { d: 2, s: 9, e: 11, c: 'MTH 101', n: 'Elementary Maths I', w: 'Rm 011 Congo', f: 'mth' },
+    { d: 3, s: 9, e: 11, c: 'CHM 107', n: 'Practical Chemistry', w: 'Chem Lab, Ubangi', f: 'chm' },
+    { d: 3, s: 13, e: 15, c: 'GET 101', n: 'Engineer in Society', w: 'Rm 011 Congo', f: 'gen' },
+    { d: 3, s: 15, e: 17, c: 'PHY 103', n: 'General Physics III', w: 'Rm 011 Congo', f: 'phy' },
+    { d: 4, s: 9, e: 11, c: 'MTH 103', n: 'Elementary Maths III', w: 'Rm 012 Congo', f: 'mth' },
+    { d: 4, s: 13, e: 14, c: 'Blocked', n: 'Not available', w: '', f: 'gen', blocked: true },
+    { d: 4, s: 15, e: 17, c: 'CHM 101', n: 'General Chemistry I', w: 'Rm 011 Congo', f: 'chm' }
+  ];
+
+  /* Study blocks placed in the gaps between lectures */
+  var BLOCKS = [
+    { id: 'm1', d: 0, s: 11.5, e: 13, c: 'PHY 101', f: 'phy', t: 'Read ahead on mechanics before the 1pm lecture and write down questions.' },
+    { id: 'm2', d: 0, s: 15, e: 16.5, c: 'CHM 101', f: 'chm', t: 'Rewrite last lecture\'s notes, then do end-of-chapter problems.' },
+    { id: 'n1', d: 0, s: 20, e: 22, c: 'PHY 107', f: 'phy', t: "Prep for tomorrow's first class (PHY 107 lab, 13:00): re-read the experiment, set up your data table and list likely sources of error." },
+    { id: 't1', d: 1, s: 9, e: 10.5, c: 'MTH 101', f: 'mth', t: "Practice problems on the topic taught in this week's MTH 101 lectures." },
+    { id: 't0', d: 1, s: 10.5, e: 12, c: 'MTH 101', f: 'mth', t: 'Timed MTH 101 past questions on the topics covered so far.' },
+    { id: 't2', d: 1, s: 15, e: 16.5, c: 'PHY 107', f: 'phy', t: 'Lab write-up: data table, graph, error analysis.' },
+    { id: 'n2', d: 1, s: 20, e: 22, c: 'MTH 101', f: 'mth', t: "Prep for tomorrow's first class (MTH 101, 09:00): skim the next topic in your notes and try two examples before the lecture." },
+    { id: 'w1', d: 2, s: 11, e: 12.5, c: 'MTH 103', f: 'mth', t: 'Problems on Friday\'s and this week\'s topics.' },
+    { id: 'w2', d: 2, s: 13, e: 14.5, c: 'PHY 103', f: 'phy', t: "Notes and problems on this week's PHY 103 topic (see the lecture plan on the Today tab)." },
+    { id: 'w3', d: 2, s: 15.5, e: 17, c: 'GST 111', f: 'gen', t: "Study this week's GST 111 topic (see the lecture plan on the Today tab), then do practice questions on it." },
+    { id: 'n3', d: 2, s: 20, e: 22, c: 'CHM 107', f: 'chm', t: "Prep for tomorrow's first class (CHM 107 lab, 09:00): read the procedure, note the safety rules and draw your results table." },
+    { id: 'h0', d: 3, s: 8, e: 8.75, c: 'CHM 107', f: 'chm', tp: 'Graded test today', t: "Last look before the 09:00 lab test: procedure, standards, titration calculations and safety rules." },
+    { id: 'h1', d: 3, s: 11, e: 12, c: 'CHM 107', f: 'chm', tp: 'Test follow-up', t: "Finish lab calculations and notebook entries, then correct this morning's test mistakes." },
+    { id: 'h2', d: 3, s: 12.5, e: 13, c: 'GET 101', f: 'gen', t: "Skim last week's GET 101 notes and this week's topic (see the lecture plan on the Today tab), and write three questions to ask in the 13:00 lecture." },
+    { id: 'n4', d: 3, s: 20, e: 22, c: 'MTH 103', f: 'mth', t: "Prep for tomorrow's first class (MTH 103, 09:00): review the last lecture and attempt the next set of examples." },
+    { id: 'f1', d: 4, s: 11.5, e: 13, c: 'CHM 101', f: 'chm', tp: 'Graded test today', t: "Test prep for today's 15:00 lecture: read this week's CHM 101 topic (see the lecture plan on the Today tab) and work problems on it." },
+    { id: 'f3', d: 4, s: 14, e: 14.75, c: 'CHM 101', f: 'chm', tp: 'Graded test today', t: "Last look before the lecture: formulas, definitions and the questions you missed last week." },
+    { id: 'f4', d: 4, s: 19.5, e: 20.5, c: 'CHM 101', f: 'chm', tp: 'Test follow-up', t: "Correct today's test mistakes and write the right method beside each one." },
+    { id: 'f2', d: 4, s: 20.5, e: 22, c: 'PHY 103', f: 'phy', t: "Problems from Thursday's PHY 103 lecture." },
+    { id: 's1', d: 5, s: 9, e: 11, c: 'PHY 101/103', f: 'phy', t: 'Deep block: redo the hardest physics problems of the week.' },
+    { id: 's2', d: 5, s: 13, e: 14.5, c: 'MTH 101/103', f: 'mth', t: 'Deep block: maths problems you got wrong or skipped.' },
+    { id: 's4', d: 5, s: 11.5, e: 13, c: 'Mixed', f: 'gen', t: 'Timed mixed past questions across your courses, then mark them honestly.' },
+    { id: 's3', d: 5, s: 15, e: 16, c: 'CHM 101/107', f: 'chm', t: "Redo every chemistry test question you lost marks on this week." },
+    { id: 'u1', d: 6, s: 14, e: 15.5, c: 'Review', f: 'gen', t: 'Timed past-question set, then plan next week and tick topics covered.' },
+    { id: 'n5', d: 6, s: 20, e: 22, c: 'GST 111', f: 'gen', t: "Prep for tomorrow's first class (GST 111, 09:00, online): do the reading, review grammar notes and check your device and connection." }
+  ];
+  /* Lighter plan (about 30 h): keeps the next-day prep nights and the chemistry test blocks */
+  var LITE_IDS = ['n1', 'n2', 'n3', 'n4', 'n5', 'h0', 'h1', 'h2', 'f1', 'f3', 'f4', 'm1', 't2', 'w2', 'w3', 's1', 's2', 'u1'];
+  function hoursOf(list) { return list.reduce(function (a, b) { return a + b.e - b.s; }, 0); }
+  /* Keep every day's blocks in clock order, so lists and "up next" follow the schedule */
+  BLOCKS.sort(function (a, b) { return a.d - b.d || a.s - b.s; });
+  var LITE = BLOCKS.filter(function (b) { return LITE_IDS.indexOf(b.id) > -1; });
+  var TOTAL_H = 0;
+  var PERSONAL = { s: 17, e: 19.5 }; /* travel home and personal time, never scheduled */
+
+  /* Course content from the handbook synopsis */
+  var COURSES = [
+    { c: 'PHY 101', n: 'General Physics I: Mechanics', cr: 2, f: 'phy', mid: 6, w: [1, 2, 3, 4, 5, 6, 8, 8, 9, 10, 11, 12, 13], t: ['Units and dimensions', 'Vectors and scalars; differentiation of vectors', 'Displacement, velocity and acceleration; kinematics (equations of motion)', 'Newton\'s laws of motion (inertial frames, impulse, force, momentum conservation); relative motion', 'Application of Newtonian mechanics', 'Conservation principles, conservative forces, linear momentum, kinetic energy and work, potential energy', 'System of particles and centre of mass', 'Rotational motion, torque and the vector product', 'Moment, rotation of coordinate axes, angular momentum, polar coordinates', 'Conservation of angular momentum; circular motion', 'Moments of inertia, gyroscopes and precession', 'Gravitation: Newton\'s law of gravitation and Kepler\'s laws of planetary motion', 'Gravitational potential energy, escape velocity, satellite motion and orbits'] },
+    { c: 'PHY 103', n: 'General Physics III: Behaviour of Matter', cr: 2, f: 'phy', mid: 3, w: [1, 4, 5, 8, 10, 11], t: ['Heat and temperature', 'Thermal properties of matter', 'First law of thermodynamics', 'Second law of thermodynamics', 'Elasticity of a material', 'Fluid mechanics'] },
+    { c: 'PHY 107', n: 'Practical Physics I', cr: 1, f: 'phy', t: ['Measuring physical quantities', 'Treatment of measurement errors', 'Plotting and analysing graphs', 'Meters and the oscilloscope', 'Mechanical systems experiments', 'Electrical and mechanical resonance', 'Light, heat and viscosity experiments', 'Writing lab reports'] },
+    { c: 'MTH 101', n: 'Elementary Mathematics I: Algebra and Trigonometry', cr: 2, f: 'mth', mid: 6, w: [1, 2, 2, 3, 4, 5, 8, 9, 10, 10, 12, 12], t: ['Set theory: subsets, union, intersection, complements, Venn diagrams', 'Number systems: N, Z, Q, irrationals, R and C', 'Real number properties: closure, commutative, associative, identity, inverse, distributive; absolute value', 'Sequences: arithmetic and geometric progressions', 'Series: arithmetic and geometric progressions', 'Mathematical induction', 'Theory of quadratic equations', 'Binomial theorem', 'Complex numbers, their algebra and the Argand diagram', 'De Moivre\'s theorem and nth roots of unity', 'Circular measure and trigonometric functions of any angle', 'Addition and factor formulae'] },
+    { c: 'MTH 103', n: 'Elementary Mathematics III: Vectors, Geometry and Dynamics', cr: 2, f: 'mth', mid: 7, w: [1, 2, 3, 4, 5, 6, 7, 9, 10, 12, 13], t: ['Vectors and scalars', 'Algebra of vectors', 'Angle between two vectors', 'Vector-valued functions', 'Fundamental concepts in vector calculus', 'Linear equations', 'Distance between two points', 'Centre and radius of a circle', 'Conic sections', 'Equations of tangent and normal', 'Dynamics'] },
+    { c: 'CHM 101', n: 'General Chemistry I', cr: 2, f: 'chm', mid: 6, w: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], t: ['Atoms, molecules, elements, compounds and chemical reactions', 'Modern electronic theory of atoms', 'Electronic configuration, periodicity and building up of the periodic table', 'Hybridisation and shapes of simple molecules', 'Valence forces and structure of solids', 'Chemical equations and stoichiometry', 'Chemical bonding and intermolecular forces', 'Kinetic theory of matter', 'Elementary thermochemistry', 'Rates of reaction, equilibrium and thermodynamics', 'Acids, bases and salts', 'Properties of gases', 'Redox reactions and electrochemistry', 'Radioactivity'] },
+    { c: 'CHM 107', n: 'Practical Chemistry I', cr: 1, f: 'chm', t: ['Laboratory rules and safety', 'Glassware and equipment', 'Primary and secondary standards', 'Acid-base titration', 'Redox titration', 'Precipitation and complexometric titrations', 'Gravimetric analysis', 'Qualitative chemical analysis', 'Notebook, data analysis and presentation'] },
+    { c: 'GST 111', n: 'Communication in English', cr: 2, f: 'gen', mid: 7, w: [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14], t: ['Introduction to language and communication', 'Language skills: listening skills and note taking', 'Language skills: speaking skills', 'Understanding the sound patterns of the English language', 'Understanding stress and intonation for effective spoken communication', 'Reading and comprehension skills; note making', 'Grammar and usage: tense, mood and modality', 'Concord', 'English word classes part 1: open and closed class items; noun, pronoun, verb, interjection', 'English word classes part 2: adverb, adjective, conjunction, preposition', 'Phrases and clauses', 'The sentence in the English language', 'Word formation and processes'] },
+    { c: 'GET 101', n: 'Engineer in Society', cr: 2, f: 'gen', mid: 4, w: [1, 1, 3, 4, 7, 9, 11], t: ['Introduction and course review', 'Introduction to engineering', 'The engineering profession', 'Engineering code of conduct and ethics', 'Sustainable Development Goals (SDGs)', 'Safety and risk analysis in engineering practice', 'Engineering competency skills'] }
+  ];
+
+  /* MTH 101 weekly lecture plan from the course outline. Semester week 1 began Mon 5 Oct 2026. */
+  var SEM1 = addDays(START, -7);
+  var MTH_PLAN = [
+    { a: 1, b: 1, t: 'Set theory: subsets, union, intersection, complements, Venn diagrams' },
+    { a: 2, b: 2, t: 'Number systems (N, Z, Q, irrationals, R, C) and their properties; absolute value' },
+    { a: 3, b: 3, t: 'Sequences: arithmetic and geometric progressions' },
+    { a: 4, b: 4, t: 'Series: arithmetic and geometric progressions' },
+    { a: 5, b: 6, t: 'Mathematical induction' },
+    { a: 7, b: 7, t: 'Midterm examination' },
+    { a: 8, b: 8, t: 'Theory of quadratic equations' },
+    { a: 9, b: 9, t: 'Binomial theorem' },
+    { a: 10, b: 11, t: 'Complex numbers, the Argand diagram, De Moivre\'s theorem, nth roots of unity' },
+    { a: 12, b: 13, t: 'Circular measure, trigonometric functions of any angle, addition and factor formulae' },
+    { a: 14, b: 14, t: 'Revision' },
+    { a: 15, b: 15, t: 'Examination' }
+  ];
+  /* CHM 101 weekly lecture plan from your notes (one topic per semester week) */
+  var CHM_TOPICS = ['Atoms, molecules, elements, compounds and chemical reactions', 'Modern electronic theory of atoms', 'Electronic configuration, periodicity and building up of the periodic table', 'Hybridisation and shapes of simple molecules', 'Valence forces and structure of solids', 'Chemical equations and stoichiometry', 'Chemical bonding and intermolecular forces', 'Kinetic theory of matter', 'Elementary thermochemistry', 'Rates of reaction, equilibrium and thermodynamics', 'Acids, bases and salts', 'Properties of gases', 'Redox reactions and electrochemistry', 'Radioactivity'];
+  var CHM_PLAN = CHM_TOPICS.map(function (t, i) { return { a: i + 1, b: i + 1, t: t }; });
+  /* MTH 103 weekly outline from your notes */
+  var MTH103_PLAN = [
+    { a: 1, b: 1, t: 'Vectors and scalars' },
+    { a: 2, b: 2, t: 'Algebra of vectors' },
+    { a: 3, b: 3, t: 'Angle between two vectors' },
+    { a: 4, b: 4, t: 'Vector-valued functions' },
+    { a: 5, b: 5, t: 'Fundamental concepts in vector calculus' },
+    { a: 6, b: 6, t: 'Linear equations' },
+    { a: 7, b: 7, t: 'Distance between two points' },
+    { a: 8, b: 8, t: 'Mid-term examination' },
+    { a: 9, b: 9, t: 'Centre and radius of a circle' },
+    { a: 10, b: 11, t: 'Conic sections' },
+    { a: 12, b: 12, t: 'Equations of tangent and normal' },
+    { a: 13, b: 15, t: 'Dynamics' }
+  ];
+  /* PHY 103 weekly outline from your notes */
+  var PHY103_PLAN = [
+    { a: 1, b: 3, t: 'Heat and temperature' },
+    { a: 4, b: 4, t: 'Thermal properties of matter' },
+    { a: 5, b: 6, t: 'First law of thermodynamics' },
+    { a: 7, b: 7, t: 'Midterm test' },
+    { a: 8, b: 9, t: 'Second law of thermodynamics' },
+    { a: 10, b: 10, t: 'Elasticity of a material' },
+    { a: 11, b: 13, t: 'Fluid mechanics' },
+    { a: 14, b: 15, t: 'Revision and examination' }
+  ];
+  /* PHY 101 weekly outline from the course plan */
+  var PHY101_PLAN = [
+    { a: 1, b: 1, t: 'Units and dimensions' },
+    { a: 2, b: 2, t: 'Vectors and scalars; differentiation of vectors' },
+    { a: 3, b: 3, t: 'Displacement, velocity and acceleration; kinematics (equations of motion)' },
+    { a: 4, b: 4, t: 'Newton\'s laws of motion (inertial frames, impulse, force, momentum conservation); relative motion' },
+    { a: 5, b: 5, t: 'Application of Newtonian mechanics' },
+    { a: 6, b: 6, t: 'Conservation principles, conservative forces, linear momentum, kinetic energy and work, potential energy' },
+    { a: 7, b: 7, t: 'Midterm examination' },
+    { a: 8, b: 8, t: 'System of particles, centre of mass, rotational motion, torque, vector product' },
+    { a: 9, b: 9, t: 'Moment, rotation of coordinate axes, angular momentum, polar coordinates' },
+    { a: 10, b: 10, t: 'Conservation of angular momentum; circular motion' },
+    { a: 11, b: 11, t: 'Moments of inertia, gyroscopes and precession' },
+    { a: 12, b: 12, t: 'Gravitation: Newton\'s law of gravitation and Kepler\'s laws' },
+    { a: 13, b: 13, t: 'Gravitational potential energy, escape velocity, satellite motion and orbits' },
+    { a: 14, b: 14, t: 'Lecture-free week and revision' },
+    { a: 15, b: 16, t: 'Examination' }
+  ];
+  /* GST 111 weekly lecture plan from the course outline */
+  var GST_PLAN = [
+    { a: 1, b: 1, t: 'Introduction to language and communication' },
+    { a: 2, b: 2, t: 'Language skills: listening skills and note taking' },
+    { a: 3, b: 3, t: 'Language skills: speaking skills' },
+    { a: 4, b: 4, t: 'Understanding the sound patterns of the English language' },
+    { a: 5, b: 5, t: 'Understanding stress and intonation for effective spoken communication' },
+    { a: 6, b: 6, t: 'Reading and comprehension skills; note making' },
+    { a: 7, b: 7, t: 'Grammar and usage: tense, mood and modality' },
+    { a: 8, b: 8, t: 'Mid-semester examination' },
+    { a: 9, b: 9, t: 'Concord' },
+    { a: 10, b: 10, t: 'English word classes part 1: open and closed class items; noun, pronoun, verb, interjection' },
+    { a: 11, b: 11, t: 'English word classes part 2: adverb, adjective, conjunction, preposition' },
+    { a: 12, b: 12, t: 'Phrases and clauses' },
+    { a: 13, b: 13, t: 'The sentence in the English language' },
+    { a: 14, b: 14, t: 'Word formation and processes' },
+    { a: 15, b: 15, t: 'Revision' },
+    { a: 16, b: 16, t: 'Examination' }
+  ];
+  /* GET 101 weekly lecture schedule from the course outline */
+  var GET_PLAN = [
+    { a: 1, b: 1, t: 'Introduction and course review; introduction to engineering' },
+    { a: 2, b: 2, t: 'Introduction to engineering' },
+    { a: 3, b: 3, t: 'The engineering profession' },
+    { a: 4, b: 5, t: 'Engineering code of conduct and ethics' },
+    { a: 6, b: 6, t: 'Mid-semester examination' },
+    { a: 7, b: 8, t: 'Sustainable Development Goals (SDGs)' },
+    { a: 9, b: 10, t: 'Safety and risk analysis in engineering practice' },
+    { a: 11, b: 12, t: 'Engineering competency skills' },
+    { a: 13, b: 13, t: 'Revision' },
+    { a: 14, b: 14, t: 'End of semester examination' }
+  ];
+  var PLANS = [{ c: 'GST 111', f: 'gen', p: GST_PLAN }, { c: 'GET 101', f: 'gen', p: GET_PLAN }, { c: 'MTH 101', f: 'mth', p: MTH_PLAN }, { c: 'MTH 103', f: 'mth', p: MTH103_PLAN }, { c: 'PHY 101', f: 'phy', p: PHY101_PLAN }, { c: 'PHY 103', f: 'phy', p: PHY103_PLAN }, { c: 'CHM 101', f: 'chm', p: CHM_PLAN }];
+  function planTopic(p, w) {
+    for (var i = 0; i < p.length; i++) { if (w >= p[i].a && w <= p[i].b) return p[i].t; }
+    return null;
+  }
+  function semWeek(d) { return Math.floor(diffDays(SEM1, d) / 7) + 1; }
+  function mthCard(d) {
+    var w = semWeek(d);
+    var rows = PLANS.map(function (x) {
+      var t = planTopic(x.p, w);
+      return t ? '<p class="mline ' + x.f + '"><span class="chip">' + x.c + '</span> ' + t + '</p>' : '';
+    }).join('');
+    return rows ? '<section class="card"><h3>Lecture plan, week ' + w + '</h3>' + rows + '</section>' : '';
+  }
+  function mthLine(w) {
+    return PLANS.map(function (x) {
+      var t = planTopic(x.p, w);
+      return t ? '<p class="mt ' + x.f + '"><b>' + x.c + ':</b> ' + t + '</p>' : '';
+    }).join('');
+  }
+
+  /* Date helpers */
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parse(s) { var p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+  function midnight(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function diffDays(a, b) { return Math.round((midnight(b) - midnight(a)) / DAY_MS); }
+  function mondayOf(d) { return addDays(midnight(d), -((d.getDay() + 6) % 7)); }
+  function fmtT(h) { return pad(Math.floor(h)) + ':' + pad(Math.round((h % 1) * 60)); }
+  function fmtH(h) { return (Math.round(h * 10) / 10) + ' h'; }
+  function fmtD(d, o) { return d.toLocaleDateString('en-GB', o); }
+
+  /* State, kept in localStorage: read on open, written on every change, on leaving and on a timer */
+  var KEY = 'eee100-study-planner-v1';
+  var DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+  var tab = 'today', weekOffset = 0, filter = 'all', openCourse = { 'PHY 101': true };
+  var VER = 8; /* 2: finals on 14 Jan 2027 and the MTH 101 topic list. 3: CHM 101 topics. 4: MTH 103 topics. 5: PHY 103 topics. 6: PHY 101 topics. 7: GST 111 topics. 8: GET 101 topics. */
+  var S = { mid: '2026-11-18', fin: '2027-01-14', done: {}, topics: {}, tags: {}, mode: 'full', theme: 'system' };
+  var lastRaw = null, lastBody = '', savedAt = 0, storageOk = true;
+  var view = document.getElementById('view');
+
+  function isObj(x) { return !!x && typeof x === 'object' && !Array.isArray(x); }
+  function active() { return S.mode === 'full' ? BLOCKS : LITE; }
+  function state() {
+    return { ver: VER, theme: S.theme, mid: S.mid, fin: S.fin, mode: S.mode, done: S.done, topics: S.topics, tags: S.tags, ui: { tab: tab, filter: filter, open: openCourse } };
+  }
+  /* Theme switch: an explicit choice sets data-theme on the root; "match device" restores what the page started with */
+  var origTheme = document.documentElement.getAttribute('data-theme');
+  function systemDark() {
+    if (origTheme === 'dark') return true;
+    if (origTheme === 'light') return false;
+    try { return window.matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return false; }
+  }
+  function isDark() { return S.theme === 'dark' ? true : S.theme === 'light' ? false : systemDark(); }
+  function applyTheme() {
+    var r = document.documentElement;
+    if (S.theme === 'dark' || S.theme === 'light') r.setAttribute('data-theme', S.theme);
+    else if (origTheme) r.setAttribute('data-theme', origTheme);
+    else r.removeAttribute('data-theme');
+    var sw = document.getElementById('themeSwitch'), rs = document.getElementById('themeReset');
+    if (sw) sw.setAttribute('aria-checked', String(isDark()));
+    var lb = document.getElementById('themeLabel');
+    if (lb) lb.textContent = isDark() ? 'Dark mode: on' : 'Dark mode: off';
+    if (rs) rs.hidden = S.theme === 'system';
+  }
+  function showStatus() {
+    var el = document.getElementById('saveStatus');
+    if (!el) return;
+    if (!storageOk) { el.textContent = 'Not saved: this browser is blocking storage, so changes will be lost when you close the page.'; return; }
+    var t = savedAt ? new Date(savedAt) : null;
+    el.textContent = t ? 'Saved automatically at ' + pad(t.getHours()) + ':' + pad(t.getMinutes()) + '.' : 'Saving automatically in this browser.';
+  }
+  function save() {
+    var o = state(), body = JSON.stringify(o);
+    if (body !== lastBody || !storageOk) {
+      o.savedAt = Date.now();
+      var raw = JSON.stringify(o);
+      try { localStorage.setItem(KEY, raw); lastRaw = raw; lastBody = body; savedAt = o.savedAt; storageOk = true; }
+      catch (e) { storageOk = false; }
+    }
+    showStatus();
+  }
+  function load(withUi) {
+    var raw = null;
+    try { raw = localStorage.getItem(KEY); } catch (e) { storageOk = false; return false; }
+    if (!raw || raw === lastRaw) return false;
+    try {
+      var o = JSON.parse(raw);
+      if (typeof o.mid === 'string' && DATE_RE.test(o.mid)) S.mid = o.mid;
+      var ov = typeof o.ver === 'number' ? o.ver : 0;
+      if (ov >= 2 && typeof o.fin === 'string' && DATE_RE.test(o.fin)) S.fin = o.fin;
+      if (ov >= 2 && (o.mode === 'lite' || o.mode === 'full')) S.mode = o.mode;
+      if (o.theme === 'light' || o.theme === 'dark' || o.theme === 'system') S.theme = o.theme;
+      ['done', 'topics', 'tags'].forEach(function (k) { if (isObj(o[k])) S[k] = o[k]; });
+      if (ov < VER) {
+        var stale = [];
+        if (ov < 2) stale.push('MTH 101:');
+        if (ov < 3) stale.push('CHM 101:');
+        if (ov < 4) stale.push('MTH 103:');
+        if (ov < 5) stale.push('PHY 103:');
+        if (ov < 6) stale.push('PHY 101:');
+        if (ov < 7) stale.push('GST 111:');
+        if (ov < 8) stale.push('GET 101:');
+        ['topics', 'tags'].forEach(function (k) {
+          Object.keys(S[k]).forEach(function (id) { if (stale.some(function (p) { return id.indexOf(p) === 0; })) delete S[k][id]; });
+        });
+      }
+      if (withUi && isObj(o.ui)) {
+        if (['today', 'week', 'plan', 'topics'].indexOf(o.ui.tab) > -1) tab = o.ui.tab;
+        if (['all', 'm', 'f'].indexOf(o.ui.filter) > -1) filter = o.ui.filter;
+        if (isObj(o.ui.open)) openCourse = o.ui.open;
+      }
+      if (typeof o.savedAt === 'number') savedAt = o.savedAt;
+      lastRaw = raw; lastBody = ov === VER ? JSON.stringify(state()) : '';
+      return true;
+    } catch (e) { return false; }
+  }
+  function sync() { if (load(false)) render(); showStatus(); }
+
+  function isMid(c, i) { var t = S.tags[c.c + ':' + i]; return t ? t === 'm' : i < (c.mid != null ? c.mid : Math.ceil(c.t.length / 2)); }
+  function topicStats() {
+    var r = { m: 0, md: 0, a: 0, ad: 0 };
+    COURSES.forEach(function (c) {
+      c.t.forEach(function (_, i) {
+        var d = !!S.topics[c.c + ':' + i];
+        r.a++; if (d) r.ad++;
+        if (isMid(c, i)) { r.m++; if (d) r.md++; }
+      });
+    });
+    return r;
+  }
+  function weekHours(mon) {
+    var h = 0;
+    active().forEach(function (b) { if (S.done[ymd(addDays(mon, b.d)) + '|' + b.id]) h += b.e - b.s; });
+    return h;
+  }
+  function weekIdx(str) { return Math.floor(diffDays(START, parse(str)) / 7); }
+  function weeks() {
+    var wm = Math.max(1, Math.min(weekIdx(S.mid), 52));
+    var wf = Math.max(wm + 2, Math.min(weekIdx(S.fin), 60));
+    return { wm: wm, wf: wf };
+  }
+  function phase(i, w) {
+    if (i === w.wf) return { k: 'exam', l: 'Finals begin', t: 'Exams start this week. Review formula sheets only, sleep well, and arrive 15 minutes early with your ID card.' };
+    if (i === w.wm) return { k: 'exam', l: 'Midsem exams', t: 'One paper at a time. Review summaries and formula sheets, no new topics. Keep your sleep regular.' };
+    if (i === w.wm + 1) return { k: 'reset', l: 'Reset', t: 'Go through your marked midsem scripts. List every mistake by course and fix the top three topics in each.' };
+    if (i < w.wm) {
+      var left = w.wm - i;
+      if (left === 1) return { k: 'rev', l: 'Midsem revision', t: 'Timed past questions in every course. Redo every error. Finish your formula sheets.' };
+      if (left === 2) return { k: 'push', l: 'Close the gaps', t: 'Finish all midsem topics. Start timed past questions on what you have already covered.' };
+      return { k: 'learn', l: 'Keep up', t: 'Study each lecture within 48 hours: notes first, then problems. Tick topics as you cover them.' };
+    }
+    var l2 = w.wf - i;
+    if (l2 === 1) return { k: 'rev', l: 'Final polish', t: 'Light revision only. Formula sheets, weak-topic fixes, and rest.' };
+    if (l2 <= 3) return { k: 'push', l: 'Mock exams', t: 'Sit one full past paper per course in exam time, on everything taught so far. Mark it and fix the errors the same day.' };
+    if (l2 <= 6) return { k: 'rev', l: 'Keep up and revisit', t: 'Keep up with new lectures, and each week redo a set of past questions from the topics before midsem, weakest course first.' };
+    return { k: 'learn', l: 'Keep up', t: 'Keep the lecture, notes, problems routine going for the second half of the syllabus.' };
+  }
+
+  /* Header tiles */
+  function tile(label, dateStr, id, done, total, covLabel) {
+    var d = diffDays(new Date(), parse(dateStr));
+    var big, unit, sub = '';
+    if (d > 0) { big = d; unit = d === 1 ? 'day to go' : 'days to go'; sub = Math.floor(d / 7) + ' wk ' + (d % 7) + ' d'; }
+    else if (d === 0) { big = 'Today'; unit = ''; }
+    else { big = -d; unit = 'days ago'; }
+    var pct = total ? Math.round(done / total * 100) : 0;
+    return '<div class="tile"><div class="tile-top"><span class="label">' + label + '</span>' +
+      '<input type="date" id="' + id + '" value="' + dateStr + '" aria-label="' + label + ' date"></div>' +
+      '<div class="big"><b>' + big + '</b><span>' + unit + '</span></div>' +
+      '<p class="when">' + fmtD(parse(dateStr), { weekday: 'long', day: 'numeric', month: 'long' }) + (sub ? ' &middot; ' + sub : '') + '</p>' +
+      '<div class="bar" role="img" aria-label="' + pct + ' percent covered"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="cov"><span>' + covLabel + '</span><span>' + done + ' of ' + total + '</span></div></div>';
+  }
+  function renderTiles() {
+    var st = topicStats();
+    document.getElementById('tiles').innerHTML =
+      tile('Mid-semester exams', S.mid, 'midDate', st.md, st.m, 'Midsem topics covered') +
+      tile('Final exams', S.fin, 'finDate', st.ad, st.a, 'All topics covered');
+    document.getElementById('modeBar').innerHTML = '<span class="label">Workload</span>' +
+      [['lite', 'Lighter', LITE], ['full', 'Full', BLOCKS]].map(function (m) {
+        return '<button class="btn" data-mode="' + m[0] + '" aria-pressed="' + ((S.mode === 'full') === (m[0] === 'full')) + '">' + m[1] + ' &middot; ' + fmtH(hoursOf(m[2])) + ' a week</button>';
+      }).join('');
+    document.getElementById('todayLine').textContent = fmtD(new Date(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) + '. Study blocks sit in the gaps around your lectures.';
+  }
+
+  /* Today */
+  function renderToday() {
+    var now = new Date(), di = (now.getDay() + 6) % 7, key = ymd(now);
+    var lec = LECTURES.filter(function (l) { return l.d === di && !l.blocked; });
+    var blocks = active().filter(function (b) { return b.d === di; });
+    var nowH = now.getHours() + now.getMinutes() / 60;
+    var next = null;
+    blocks.forEach(function (b) { if (!next && b.e > nowH && !S.done[key + '|' + b.id]) next = b.id; });
+    var doneN = blocks.filter(function (b) { return S.done[key + '|' + b.id]; }).length;
+    var mon = mondayOf(now), wh = weekHours(mon);
+    var out = '<div class="head"><div><h2>' + fmtD(now, { weekday: 'long' }) + '</h2><p>' + doneN + ' of ' + blocks.length + ' study blocks done today</p></div></div>';
+    out += '<section><h3>Lectures today</h3>';
+    out += lec.length ? lec.map(function (l) {
+      return '<div class="lec"><span class="time">' + fmtT(l.s) + '&ndash;' + fmtT(l.e) + '</span><b>' + l.c + '</b><span>' + l.n + (l.w ? ' &middot; ' + l.w : '') + '</span></div>';
+    }).join('') : '<p class="empty">No lectures today.</p>';
+    out += '</section>' + mthCard(now) + '<section><h3>Study blocks</h3><ul>';
+    out += blocks.length ? blocks.map(function (b) {
+      var k = key + '|' + b.id, dn = !!S.done[k];
+      return '<li class="blk ' + b.f + (dn ? ' done' : '') + (b.id === next ? ' next' : '') + '"><label>' +
+        '<input type="checkbox" data-done="' + k + '"' + (dn ? ' checked' : '') + '>' +
+        '<span><span class="row1"><span class="time">' + fmtT(b.s) + '&ndash;' + fmtT(b.e) + '</span><span class="chip">' + b.c + '</span>' +
+        (b.id === next ? '<span class="tag-now">Up next</span>' : '') + (b.tp ? '<span class="tag-now">' + b.tp + '</span>' : '') + '</span><span class="task">' + b.t + '</span></span></label></li>';
+    }).join('') : '<li><p class="empty">Nothing scheduled.</p></li>';
+    out += '</ul><p class="note" style="margin-top:8px">17:00 to 19:30 is kept free for travel and personal time.</p></section><section class="card"><div class="summary-line"><span>This week</span><b>' + fmtH(wh) + ' of ' + fmtH(TOTAL_H) + '</b></div>' +
+      '<div class="bar"><i style="width:' + Math.min(100, Math.round(wh / TOTAL_H * 100)) + '%"></i></div></section>';
+    return out;
+  }
+
+  /* Week */
+  function renderWeek() {
+    var mon = addDays(mondayOf(new Date()), weekOffset * 7), sun = addDays(mon, 6);
+    var todayKey = ymd(new Date()), now = new Date(), nowH = now.getHours() + now.getMinutes() / 60;
+    var range = fmtD(mon, { day: 'numeric', month: 'short' }) + ' to ' + fmtD(sun, { day: 'numeric', month: 'short', year: 'numeric' });
+    var out = '<div class="head"><div><h2>' + range + '</h2><p>Tap a study block to mark it done. White space is free time.</p></div>' +
+      '<div class="btns"><button class="btn" data-wk="prev">Previous</button><button class="btn" data-wk="now">This week</button><button class="btn" data-wk="next">Next</button></div></div>';
+    out += '<div class="scroller"><div class="wk"><div class="hd"></div>';
+    for (var d = 0; d < 7; d++) {
+      var dd = addDays(mon, d);
+      out += '<div class="hd' + (ymd(dd) === todayKey ? ' today' : '') + '">' + DAYS[d] + '<small>' + dd.getDate() + '</small></div>';
+    }
+    out += '<div class="gut">';
+    for (var h = 7; h < 22; h++) out += '<span style="top:calc(' + (h - 7) + ' * var(--hh) + 2px)">' + pad(h) + ':00</span>';
+    out += '</div>';
+    for (d = 0; d < 7; d++) {
+      var date = addDays(mon, d), key = ymd(date);
+      out += '<div class="col' + (key === todayKey ? ' today' : '') + '">';
+      out += '<div class="gb lecture blocked" style="top:calc(' + (PERSONAL.s - 7) + ' * var(--hh) + 1px);height:calc(' + (PERSONAL.e - PERSONAL.s) + ' * var(--hh) - 2px)"><b>Personal time</b>17:00&ndash;19:30</div>';
+      LECTURES.filter(function (l) { return l.d === d; }).forEach(function (l) {
+        out += '<div class="gb lecture' + (l.blocked ? ' blocked' : '') + '" style="top:calc(' + (l.s - 7) + ' * var(--hh) + 1px);height:calc(' + (l.e - l.s) + ' * var(--hh) - 2px)">' +
+          '<b>' + l.c + '</b>' + (l.blocked ? '' : (l.w || '')) + '</div>';
+      });
+      active().filter(function (b) { return b.d === d; }).forEach(function (b) {
+        var k = key + '|' + b.id, dn = !!S.done[k];
+        out += '<button class="gb ' + b.f + (dn ? ' done' : '') + '" data-done="' + k + '" aria-pressed="' + dn + '" title="' + b.t.replace(/"/g, '&quot;') + '" ' +
+          'style="top:calc(' + (b.s - 7) + ' * var(--hh) + 1px);height:calc(' + (b.e - b.s) + ' * var(--hh) - 2px)">' +
+          '<b>' + b.c + '</b>' + fmtT(b.s) + '&ndash;' + fmtT(b.e) + '</button>';
+      });
+      if (key === todayKey && nowH >= 7 && nowH <= 22) out += '<div class="nowline" style="top:calc(' + (nowH - 7) + ' * var(--hh))"></div>';
+      out += '</div>';
+    }
+    out += '</div></div>';
+    var cr = { phy: 0, mth: 0, chm: 0, gen: 0 }, hr = { phy: 0, mth: 0, chm: 0, gen: 0 };
+    COURSES.forEach(function (c) { cr[c.f] += c.cr; });
+    active().forEach(function (b) { hr[b.f] += b.e - b.s; });
+    out += '<section class="card"><h3>Weekly hours against credit units (' + fmtH(TOTAL_H) + ' planned)</h3><ul class="legend">';
+    ['phy', 'mth', 'chm', 'gen'].forEach(function (f) {
+      out += '<li class="' + f + '"><span><span class="chip">' + FAM[f] + '</span></span><span class="meta">' + cr[f] + ' credit units &middot; ' + fmtH(hr[f]) + ' a week</span></li>';
+    });
+    out += '</ul></section><p class="note">Every lecture is a two-hour slot from your timetable. Friday 13:00 is blocked on the timetable. 17:00 to 19:30 is kept free for travel and personal time, so nothing is planned there. Night sessions run 20:00 to 22:00 and prepare you for the next day\'s first class. Nothing is planned after 22:00, so you can sleep from 22:00 to 05:00. Friday and Saturday nights are free because Saturday and Sunday have no lectures.</p>';
+    return out;
+  }
+
+  /* Plan */
+  function renderPlan() {
+    var w = weeks(), now = new Date(), curIdx = Math.floor(diffDays(START, now) / 7);
+    var out = '<div class="head"><div><h2>Plan to finals</h2><p>Week numbers follow the semester calendar (week 1 began 5 October), so they match your MTH 101 lecture plan. Phases adjust when you change the exam dates above.</p></div></div><div class="card" style="padding:0"><ol>';
+    for (var i = 0; i <= w.wf; i++) {
+      var s = addDays(START, i * 7), e = addDays(s, 6), p = phase(i, w);
+      var cur = i === curIdx, past = i < curIdx;
+      var hrs = past || cur ? fmtH(weekHours(s)) + ' / ' + fmtH(TOTAL_H) : fmtH(TOTAL_H) + ' planned';
+      out += '<li class="wkrow ' + p.k + (cur ? ' cur' : '') + (past ? ' past' : '') + '"><span class="n">Wk ' + (i + 2) + '</span>' +
+        '<span class="d">' + fmtD(s, { day: 'numeric', month: 'short' }) + ' &ndash; ' + fmtD(e, { day: 'numeric', month: 'short' }) + '</span>' +
+        '<div class="b"><span class="ph">' + p.l + '</span>' + (cur ? '<span class="here">This week</span>' : '') + '<p>' + p.t + '</p>' + mthLine(i + 2) + '</div>' +
+        '<span class="h">' + (p.k === 'exam' ? '' : hrs) + '</span></li>';
+    }
+    out += '</ol></div><div class="two"><section class="card"><h3>The routine for every lecture</h3><ol>' +
+      '<li><b>1</b><span>Same day: 15-minute recap of your lecture notes.</span></li>' +
+      '<li><b>2</b><span>Within 48 hours: problems on that topic.</span></li>' +
+      '<li><b>3</b><span>Saturday: redo the questions you got wrong.</span></li>' +
+      '<li><b>4</b><span>Sunday: one timed past-question set, then tick the topics you can now do without notes.</span></li>' +
+      '<li><b>+</b><span>Chemistry: you get a graded test at the end of every lecture, so read ahead before each CHM 101 lecture and CHM 107 lab, and correct your test mistakes the same day.</span></li></ol></section>' +
+      '<section class="card"><h3>From your handbook</h3><ul>' +
+      '<li>You need at least 70% attendance to sit an exam.</li>' +
+      '<li>Continuous assessment is 30 to 40% of a course and the exam 60 to 70%, so the midsem carries real weight.</li>' +
+      '<li>Entirely practical courses are graded 100% on practical work and reports, so lab write-ups are never optional.</li>' +
+      '<li>Arrive 15 minutes early with your ID card. No entry after 30 minutes. Grade A starts at 70.</li></ul></section></div>';
+    return out;
+  }
+
+  /* Topics */
+  function renderTopics() {
+    var st = topicStats();
+    var out = '<div class="head"><div><h2>Topics</h2><p>' + st.ad + ' of ' + st.a + ' covered. Tap MIDSEM or FINALS on a topic to move it once your lecturer confirms what the midsem covers.</p></div>' +
+      '<div class="btns">' + [['all', 'All'], ['m', 'Before midsem'], ['f', 'After midsem']].map(function (x) {
+        return '<button class="btn" data-filter="' + x[0] + '" aria-pressed="' + (filter === x[0]) + '">' + x[1] + '</button>';
+      }).join('') + '</div></div>';
+    COURSES.forEach(function (c) {
+      var idx = [];
+      c.t.forEach(function (_, i) { if (filter === 'all' || (filter === 'm') === isMid(c, i)) idx.push(i); });
+      var done = idx.filter(function (i) { return S.topics[c.c + ':' + i]; }).length;
+      var pct = idx.length ? Math.round(done / idx.length * 100) : 0;
+      out += '<details class="card ' + c.f + '" data-c="' + c.c + '"' + (openCourse[c.c] ? ' open' : '') + '><summary>' +
+        '<span class="chip">' + c.c + '</span><span class="ttl">' + c.n + '</span><span class="cnt">' + done + '/' + idx.length + '</span>' +
+        '<div class="bar"><i style="width:' + pct + '%"></i></div></summary><ul class="topics">';
+      idx.forEach(function (i) {
+        var id = c.c + ':' + i, dn = !!S.topics[id], m = isMid(c, i);
+        out += '<li class="' + (dn ? 'done' : '') + '"><label><input type="checkbox" data-topic="' + id + '"' + (dn ? ' checked' : '') + '><span>' + c.t[i] + '</span></label>' + (c.w ? '<span class="wkt">Wk ' + c.w[i] + '</span>' : '') +
+          '<button class="tagbtn" data-tag="' + id + '" title="Move to ' + (m ? 'after' : 'before') + ' midsem">' + (m ? 'Midsem' : 'Finals') + '</button></li>';
+      });
+      out += idx.length ? '' : '<li><span class="empty">No topics in this view.</span></li>';
+      out += '</ul></details>';
+    });
+    return out;
+  }
+
+  /* Render */
+  function render() {
+    applyTheme();
+    var a = document.activeElement, sel = null;
+    if (a && a.dataset) {
+      ['done', 'topic', 'tag', 'tab', 'wk', 'filter', 'mode'].some(function (k) {
+        if (a.dataset[k] !== undefined) { sel = '[data-' + k + '="' + a.dataset[k] + '"]'; return true; }
+        return false;
+      });
+    }
+    TOTAL_H = hoursOf(active());
+    renderTiles();
+    Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'), function (b) { b.setAttribute('aria-selected', String(b.dataset.tab === tab)); });
+    view.innerHTML = tab === 'today' ? renderToday() : tab === 'week' ? renderWeek() : tab === 'plan' ? renderPlan() : renderTopics();
+    if (sel) { var el = document.querySelector(sel); if (el) el.focus({ preventScroll: true }); }
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-tab],[data-wk],[data-filter],[data-mode],[data-tag],button[data-done]');
+    if (!t) return;
+    if (t.dataset.tab) { tab = t.dataset.tab; }
+    else if (t.dataset.wk) { weekOffset = t.dataset.wk === 'now' ? 0 : weekOffset + (t.dataset.wk === 'next' ? 1 : -1); }
+    else if (t.dataset.mode) { S.mode = t.dataset.mode === 'full' ? 'full' : 'lite'; }
+    else if (t.dataset.filter) { filter = t.dataset.filter; }
+    else if (t.dataset.tag) {
+      var p = t.dataset.tag.split(':'), c = COURSES.filter(function (x) { return x.c === p[0]; })[0];
+      S.tags[t.dataset.tag] = isMid(c, +p[1]) ? 'f' : 'm'; save();
+    } else if (t.dataset.done) {
+      if (S.done[t.dataset.done]) delete S.done[t.dataset.done]; else S.done[t.dataset.done] = true;
+    }
+    save();
+    render();
+  });
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if ((t.id === 'midDate' || t.id === 'finDate') && DATE_RE.test(t.value)) {
+      if (t.id === 'midDate') S.mid = t.value; else S.fin = t.value;
+      save();
+    }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.matches('input[data-done]')) { if (t.checked) S.done[t.dataset.done] = true; else delete S.done[t.dataset.done]; save(); render(); }
+    else if (t.matches('input[data-topic]')) { if (t.checked) S.topics[t.dataset.topic] = true; else delete S.topics[t.dataset.topic]; save(); render(); }
+    else if ((t.id === 'midDate' || t.id === 'finDate') && t.value) {
+      if (t.id === 'midDate') S.mid = t.value; else S.fin = t.value;
+      if (parse(S.fin) <= parse(S.mid)) { if (t.id === 'midDate') S.fin = ymd(addDays(parse(S.mid), 28)); else S.mid = ymd(addDays(parse(S.fin), -28)); }
+      save(); render();
+    }
+  });
+  view.addEventListener('toggle', function (e) {
+    var d = e.target;
+    if (d.matches && d.matches('details[data-c]')) { openCourse[d.dataset.c] = d.open; save(); }
+  }, true);
+
+  /* Save when the page is hidden or closed, re-read when it comes back or another tab saves */
+  document.getElementById('themeSwitch').addEventListener('click', function () {
+    S.theme = isDark() ? 'light' : 'dark';
+    applyTheme(); save();
+  });
+  document.getElementById('themeReset').addEventListener('click', function () {
+    S.theme = 'system';
+    applyTheme(); save();
+  });
+  try {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var onMq = function () { if (S.theme === 'system') applyTheme(); };
+    if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq);
+  } catch (e) { /* no media query support: the switch still works */ }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) save(); else sync(); });
+  window.addEventListener('pagehide', save);
+  window.addEventListener('beforeunload', save);
+  window.addEventListener('blur', save);
+  window.addEventListener('focus', sync);
+  window.addEventListener('pageshow', sync);
+  window.addEventListener('storage', function (e) { if (e.key === KEY) sync(); });
+  setInterval(save, 30000);
+
+  load(true);
+  render();
+  save();
+})();
+</script>
+
+</body></html>
